@@ -7,7 +7,6 @@ const path = require('path');
 const app = express();
 const port = 3000;
 
-let symbol = "f";
 app.listen( port , () => console.log(`App listening on port ${ port }.`));
 
 
@@ -20,11 +19,14 @@ app.use( bodyParser.urlencoded({ // to support URL-encoded bodies.
 }));
 
 
-// --- PROVIDE JSDOM INSTANCE USING A PROMISE ---
+app.get( '/getnews/', ( req, res ) => {
+   let tickerSymbol = req.query.ticker;
 
-app.get( '/getdom', ( req, res ) => {
+   if( tickerSymbol === undefined ) tickerSymbol = "f";
 
-  service.getLatestFeed( symbol );
-
-  res.end();
+   const callback = ( data ) => {
+      res.json({ data });
+      res.end();
+   }
+   service.getLatestFeed( tickerSymbol, callback );
 })

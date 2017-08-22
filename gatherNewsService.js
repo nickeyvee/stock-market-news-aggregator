@@ -5,91 +5,107 @@ const { JSDOM } = jsdom;
 
 const gatherNewsService = {
 
-   getLatestFeed: ( symbol ) => {
+   getLatestFeed: ( tickerSymbol, callback ) => {
       let completed_requests = 0;  
       
-      const articles = [];
-      const articleSources = [];
-      const urlString = `http://articlefeeds.nasdaq.com/nasdaq/symbols?symbol=${ symbol }&fmt=xml`;  
+      const articleMetadata = [];
+      const articleUrls = [];
+      const urlString = `http://articlefeeds.nasdaq.com/nasdaq/symbols?symbol=${ tickerSymbol }&fmt=xml`;  
 
-      function getArticleBody() {
-         Promise.all( articles.map( article => {
-            // console.log( article.url );
-            JSDOM.fromURL( article.url ).then( dom => {
-               // console.log( article.url );
-               // console.log("------------------------");
-               // console.log( `ARTICLE ID: ${ article.id }\n`);
-               // console.log( document.querySelector('.article-header').textContent);                  
 
-               const document = dom.window.document;
-               const body = document.querySelector( '#left-column-div' );
+      /*
+      * The first step will be to extract all the article source url's and
+      * article metadata from nasdaq article feeds.
+      *
+      * Our list (arrays) of articleUrl's and articleMetaData will recieve 
+      * unique keys for their items so we can merge the two datasets
+      * once we have all the information.
+      */
 
-               body.querySelectorAll('p').forEach( item => {
-                  console.log( item.textContent );
-                  article.textBody = item.textContent;
-               })
-            })
-         }))                   
-      }
-
-      JSDOM.fromURL( urlString ).then(dom => {
+      JSDOM.fromURL( urlString ).then( dom => {
          const document = dom.window.document;
          const items = document.querySelectorAll('item');         
-         let chain = Promise.resolve();
          
-         let id = 0;
+         let key = 0;
          items.forEach( ( item ) => {
             const title = item.querySelector('title').innerHTML
             const timeStamp = item.children[5].innerHTML;
             const articleSource = item.children[6].innerHTML
 
-            id += 1;            
-            // console.log("------------------------");
+            key += 1;            
+            // console.log("------------------------------------------------");
             // console.log(`TITLE: ${ title }\n`);
             // console.log(`TIMESTAMP: ${ timeStamp }\n`); 
             // console.log(`ORIGINAL ARTICLE URL: ${ articleSource }`);
 
-            articles.push({
-               "id": id,
+            articleMetadata.push({
+               "key": key,
                "title": title,
                "url": articleSource,
                "timestamp": timeStamp
-               });      
+            });
+            articleUrls.push({ "key": key, "url": articleSource })      
             });
 
       })
       .then( () => {
 
-         function loop( callback ) {
-            for ( let index = 0; index < articles.length; index++ ) {
-               console.log(index, articles.length );            
-               scrapeSite( articles[ index ].url, articles[ index ] );
-               
-               if( index+ 1 === articles.length ) {
-                  callback();
-               }
+      /*
+      * Now that we have extracted the url's from our feed, we 
+      * can go out and get the article text from our list (articleUrls).
+      */
+
+      const articleTextBodies = [];     
+
+      function getArticleTextSync( articleUrls ) {
+         const article = articleUrls.pop()
+
+         request( article.url, ( error, response, html ) => {
+            let $ = cheerio.load( html );            
+            if ( !error && response.statusCode == 200 ) {
+
+               const body = $('div#articlebody').find('p').text().trim();
+               articleTextBodies.push({ "key": article.key, "body": body });
             }
+            if ( articleUrls.length ) {
+               getArticleTextSync( articleUrls );
+            } else {
+               mergeData( articleMetadata, articleTextBodies );  
+               // for ( let article of articleTextBodies ) {
+               //    console.log("------------------------------------------------");
+               //    console.log( article );
+               // }
+            }
+         })
+      }
+      getArticleTextSync( articleUrls );
+
+      const mergedData = [];
+
+      function mergeData( metadataFrag, articleTextFrag ) {
+         articleTextFrag.reverse();
+
+         let curr = metadataFrag.pop();
+
+         let match = articleTextFrag.find( b => {
+            return curr.key === b.key;
+         })
+
+         mergedData.push({
+            "key": curr.key,
+            "title": curr.title,
+            "url": curr.url,
+            "body": match.body,
+            "timestamp": curr.timestamp
+         });
+
+         if ( articleMetadata.length ) {
+            mergeData( metadataFrag, articleTextFrag );
+         } else {
+            mergedData.reverse();
+            callback( mergedData );
          }
-            
-         function scrapeSite( url, item ) {
-            request( url, ( error, response, html ) => {
-
-               let $ = cheerio.load( html );            
-
-               if ( !error ) {
-                  let body = $('div#articlebody').find('p').text().trim();
-                  item.body = body;
-
-                  // console.log( item.body );
-               }
-            })
-         }
-
-         function logResults() {
-            console.log( articles );
-         }
-         
-         loop( logResults );
+      }
       })
    }
 }

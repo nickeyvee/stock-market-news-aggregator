@@ -1,3 +1,4 @@
 # Ignore Packages
 node_modules
+filter_proto.js
 sudo.js
