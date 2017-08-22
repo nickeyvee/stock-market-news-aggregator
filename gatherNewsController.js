@@ -5,18 +5,16 @@ const bodyParser = require('body-parser');
 const path = require('path');
 
 const app = express();
-const port = 3000;
-
-app.listen( port , () => console.log(`App listening on port ${ port }.`));
-
 
 // --- EXPRESS MIDDLEWARE ---
 
-app.use( '/', express.static( path.join(__dirname, 'views')) );
+
 app.use( bodyParser.json() );   // to support JSON-encoded bodies.
 app.use( bodyParser.urlencoded({ // to support URL-encoded bodies.
   extended: true
 }));
+app.set( 'port', ( process.env.PORT || 3000 ));
+app.use( '/', express.static( path.join(__dirname, 'views')) );
 
 
 app.get( '/getnews/', ( req, res ) => {
@@ -30,3 +28,6 @@ app.get( '/getnews/', ( req, res ) => {
    }
    service.getLatestFeed( tickerSymbol, callback );
 })
+
+
+app.listen( app.get("port"), () => console.log( "App listening on port " + app.get("port") ));
