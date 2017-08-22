@@ -1,0 +1,27 @@
+{
+  "name": "gather-news-service",
+  "version": "1.0.0",
+  "description": "\"Gathers news sentiment from Bloomberg's open-api\"",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon gatherNewsController.js",
+    "connect": "node gatherNewsRepository.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://nickee_vee@bitbucket.org/stockyfeely/gather-news-service.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "homepage": "https://bitbucket.org/stockyfeely/gather-news-service#readme",
+  "dependencies": {
+    "body-parser": "^1.17.2",
+    "cheerio": "^1.0.0-rc.2",
+    "express": "^4.15.4",
+    "jsdom": "^11.1.0",
+    "path": "^0.12.7",
+    "request": "^2.81.0",
+    "request-promise": "^4.2.1"
+  }
+}
