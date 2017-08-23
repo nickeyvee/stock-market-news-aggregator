@@ -16,8 +16,8 @@ app.use( bodyParser.json() );   // to support JSON-encoded bodies.
 app.use( '/', express.static( path.join(__dirname, 'views')) );
 
 
-app.get( '/getnews/', ( req, res ) => {
-   let tickerSymbol = req.query.ticker;
+app.get( '/getnews/:ticker', ( req, res ) => {
+   let tickerSymbol = req.params.ticker;
 
    if( tickerSymbol === undefined ) tickerSymbol = "f";
 

@@ -8,6 +8,9 @@
       <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
    </head>
    <style>
+      .content {
+         padding: 15px;
+      }
       i {
          font-size: 25px;
          margin: 0 15px 0 15px;
@@ -15,13 +18,19 @@
       .inline {
          display: inline;
       }
+      .mono {
+         font-family: "Helvetica";
+      }
    </style>
    <body>
-      <span><i class="glyphicon glyphicon-save-file inline"></i><h1 class="inline">Stock Market News Gather Service</h1></span>
-      <blockquote>
-         <p>Go ahead and enter a query after the url above.</p>
-         <p>For example, to search for latest articles about Ford Motorcompany</p>
-         <p>you can just add <kbd>/getnews/?ticker=f</kbd> to the url.</p> 
-      </blockquote>
+      <div class="content">
+         <span><i class="glyphicon glyphicon-save-file inline"></i><h1 class="inline mono">Stock Market News Gather Service</h1></span>
+         <hr>
+         <blockquote>
+            <p>Go ahead and enter a parameter after the url following the endpoint <kbd>/getnews</kbd></p>
+            <p>For example, to get the latest articles for Apple you can use the end point: <kbd>/getnews/aapl</kbd></p> 
+            <p>or for Amazon Inc: <kbd>/getnews/amzn</kbd></p>
+         </blockquote>
+      </div>
    </body>
 </html>
