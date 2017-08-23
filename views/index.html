@@ -5,8 +5,23 @@
       <base href="/">
       <meta name="viewport" content="width=device-width, initial-scale=1">
       <link rel="icon" type="image/png" href="favicon-16x16.png" sizes="16x16" />
+      <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
    </head>
+   <style>
+      i {
+         font-size: 25px;
+         margin: 0 15px 0 15px;
+      }
+      .inline {
+         display: inline;
+      }
+   </style>
    <body>
-      <h1>App Works!</h1>      
+      <span><i class="glyphicon glyphicon-save-file inline"></i><h1 class="inline">Stock Market News Gather Service</h1></span>
+      <blockquote>
+         <p>Go ahead and enter a query after the url above.</p>
+         <p>For example, to search for latest articles about Ford Motorcompany</p>
+         <p>you can just add <kbd>/getnews/?ticker=f</kbd> to the url.</p> 
+      </blockquote>
    </body>
 </html>
