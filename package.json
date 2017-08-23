@@ -2,7 +2,7 @@
   "name": "gather-news-service",
   "version": "1.0.0",
   "description": "\"Gathers news sentiment from Bloomberg's open-api\"",
-  "main": "server.js",
+  "main": "gatherNewsController.js",
   "engines": {
    "node": "6.9.5",
    "npm": "4.4.0"
