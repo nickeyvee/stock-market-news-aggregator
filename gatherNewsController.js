@@ -12,7 +12,7 @@ app.use( bodyParser.urlencoded({ // to support URL-encoded bodies.
   extended: true
 }));
 app.use( bodyParser.json() );   // to support JSON-encoded bodies.
-app.set( 'port', ( process.env.PORT || 3000 ));
+// app.set( 'port', ( process.env.PORT || 3000 ));
 app.use( '/', express.static( path.join(__dirname, 'views')) );
 
 
@@ -29,6 +29,6 @@ app.get( '/getnews/', ( req, res ) => {
 })
 
 
-app.listen( app.get("port"), () => {
+app.listen( process.env.PORT || 3000 , () => {
    console.log( "App listening on port " + app.get("port"));
 });
