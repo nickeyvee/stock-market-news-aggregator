@@ -1,111 +1,73 @@
+"use strict";
+
+const request_promise = require('request-promise');
 const cheerio = require('cheerio');
-const request = require("request");
 const jsdom = require("jsdom");
 const { JSDOM } = jsdom;
 
 const gatherNewsService = {
 
    getLatestFeed: ( tickerSymbol, callback ) => {
-      let completed_requests = 0;  
-      
-      const articleMetadata = [];
+
       const articleUrls = [];
       const urlString = `http://articlefeeds.nasdaq.com/nasdaq/symbols?symbol=${ tickerSymbol }&fmt=xml`;  
 
-
       /*
       * The first step will be to extract all the article source url's and
-      * article metadata from nasdaq article feeds.
-      *
-      * Our list (arrays) of articleUrl's and articleMetaData will recieve 
-      * unique keys for their items so we can merge the two datasets
-      * once we have all the information.
+      * from nasdaq article feeds.
       */
 
       JSDOM.fromURL( urlString ).then( dom => {
          const document = dom.window.document;
          const items = document.querySelectorAll('item');         
          
-         let key = 0;
          items.forEach( ( item ) => {
-            const title = item.querySelector('title').innerHTML
-            const timeStamp = item.children[5].innerHTML;
-            const articleSource = item.children[6].innerHTML
-
-            key += 1;            
-            // console.log("------------------------------------------------");
-            // console.log(`TITLE: ${ title }\n`);
-            // console.log(`TIMESTAMP: ${ timeStamp }\n`); 
-            // console.log(`ORIGINAL ARTICLE URL: ${ articleSource }`);
-
-            articleMetadata.push({
-               "key": key,
-               "title": title,
-               "url": articleSource,
-               "timestamp": timeStamp
-            });
-            articleUrls.push({ "key": key, "url": articleSource })      
-            });
-
+            const ArticleSource = item.children[6].innerHTML
+            articleUrls.push( ArticleSource );      
+         });
       })
       .then( () => {
 
       /*
       * Now that we have extracted the url's from our feed, we 
       * can go out and get the article text from our list (articleUrls).
-      */
+      */     
 
-      const articleTextBodies = [];     
+      function asyncOperation( url ) {
+         return request_promise( url )
+      };
 
-      function getArticleTextSync( articleUrls ) {
-         const article = articleUrls.pop()
+      function parallelAsync() {
 
-         request( article.url, ( error, response, html ) => {
-            let $ = cheerio.load( html );            
-            if ( !error && response.statusCode == 200 ) {
+         let key = 0;         
+         const Operations = articleUrls.map( url => {
 
+            return asyncOperation( url ).then( html => {
+
+               key += 1;
+               const $ = cheerio.load( html );
+               const title = $('div#left-column-div').find('h1').text().trim();
+               const time = $('span[itemprop="datePublished"]').text().trim();
                const body = $('div#articlebody').find('p').text().trim();
-               articleTextBodies.push({ "key": article.key, "body": body });
-            }
-            if ( articleUrls.length ) {
-               getArticleTextSync( articleUrls );
-            } else {
-               mergeData( articleMetadata, articleTextBodies );  
-               // for ( let article of articleTextBodies ) {
-               //    console.log("------------------------------------------------");
-               //    console.log( article );
-               // }
-            }
-         })
-      }
-      getArticleTextSync( articleUrls );
-
-      const mergedData = [];
-
-      function mergeData( metadataFrag, articleTextFrag ) {
-         articleTextFrag.reverse();
-
-         let curr = metadataFrag.pop();
-
-         let match = articleTextFrag.find( b => {
-            return curr.key === b.key;
-         })
-
-         mergedData.push({
-            "key": curr.key,
-            "title": curr.title,
-            "url": curr.url,
-            "body": match.body,
-            "timestamp": curr.timestamp
+                  
+               return {
+                  id: key,
+                  title: title,
+                  bobdy: body,
+                  timestamp: time
+               }
+            });
          });
-
-         if ( articleMetadata.length ) {
-            mergeData( metadataFrag, articleTextFrag );
-         } else {
-            mergedData.reverse();
-            callback( mergedData );
-         }
+         return Promise.all( Operations );
       }
+      
+      parallelAsync().then( data => {
+         const Sorted = data.sort(( a, b )=> {
+            return a.id - b.id;
+         })
+         callback( Sorted );
+      });
+
       })
    }
 }
