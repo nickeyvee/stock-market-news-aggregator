@@ -68,6 +68,8 @@ const gatherNewsService = {
          callback( Sorted );
       });
 
+      
+
       })
    }
 }

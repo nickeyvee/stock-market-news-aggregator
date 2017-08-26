@@ -9,7 +9,8 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node gatherNewsController.js"
+    "start": "forever start gatherNewsController.js",
+    "stop": "forever stop gatherNewsController.js"
   },
   "repository": {
     "type": "git",
