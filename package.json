@@ -4,13 +4,13 @@
   "description": "\"Gathers news sentiment from Bloomberg's open-api\"",
   "main": "gatherNewsController.js",
   "engines": {
-   "node": "6.9.5",
-   "npm": "4.4.0"
+    "node": "6.9.5",
+    "npm": "4.4.0"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "mocha ./tests/gatherNewsService.spec.js",
     "start": "forever start gatherNewsController.js",
-    "stop": "forever stop gatherNewsController.js"
+    "stop": "forever stopall"
   },
   "repository": {
     "type": "git",
@@ -27,5 +27,9 @@
     "path": "^0.12.7",
     "request": "^2.81.0",
     "request-promise": "^4.2.1"
+  },
+  "devDependencies": {
+    "chai": "^4.1.2",
+    "mocha": "^4.0.1"
   }
 }

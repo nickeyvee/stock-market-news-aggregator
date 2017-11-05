@@ -1,76 +1,44 @@
-"use strict";
-
 const request_promise = require('request-promise');
 const cheerio = require('cheerio');
-const jsdom = require("jsdom");
-const { JSDOM } = jsdom;
 
-const gatherNewsService = {
+function scrapeFeedburner(tickerSymbol) {
 
-   getLatestFeed: ( tickerSymbol, callback ) => {
+   const feed_urls = [];
+   const url_feed = `http://articlefeeds.nasdaq.com/nasdaq/symbols?symbol=${ tickerSymbol }&fmt=xml`;
 
-      const articleUrls = [];
-      const urlString = `http://articlefeeds.nasdaq.com/nasdaq/symbols?symbol=${ tickerSymbol }&fmt=xml`;  
-
-      /*
-      * The first step will be to extract all the article source url's and
-      * from nasdaq article feeds.
-      */
-
-      JSDOM.fromURL( urlString ).then( dom => {
-         const document = dom.window.document;
-         const items = document.querySelectorAll('item');         
-         
-         items.forEach( ( item ) => {
-            const ArticleSource = item.children[6].innerHTML
-            articleUrls.push( ArticleSource );      
+   return request_promise(url_feed)
+      .then(xml => {
+         const $ = cheerio.load(xml, {
+            xmlMode: true
          });
-      })
-      .then( () => {
-
-      /*
-      * Now that we have extracted the url's from our feed, we 
-      * can go out and get the article text from our list (articleUrls).
-      */     
-
-      function asyncOperation( url ) {
-         return request_promise( url )
-      };
-
-      function parallelAsync() {
-
-         let key = 0;         
-         const Operations = articleUrls.map( url => {
-
-            return asyncOperation( url ).then( html => {
-
-               key += 1;
-               const $ = cheerio.load( html );
-               const title = $('div#left-column-div').find('h1').text().trim();
-               const time = $('span[itemprop="datePublished"]').text().trim();
-               const body = $('div#articlebody').find('p').text().trim();
-                  
-               return {
-                  id: key,
-                  title: title,
-                  bobdy: body,
-                  timestamp: time
-               }
-            });
-         });
-         return Promise.all( Operations );
-      }
-      
-      parallelAsync().then( data => {
-         const Sorted = data.sort(( a, b )=> {
-            return a.id - b.id;
+         $('channel').find('item').each((i, el) => {
+            feed_urls.push($(el).find('link').text());
          })
-         callback( Sorted );
-      });
-
-      
-
+         return feed_urls;
       })
-   }
 }
-module.exports = gatherNewsService;
+
+function getArticleData(arr) {
+
+   const operations = arr.map((url, i) => {
+      return request_promise(url).then(html => {
+
+         const $ = cheerio.load(html);
+         const title = $('div#left-column-div').find('h1').text().trim();
+         const time = $('span[itemprop="datePublished"]').text().trim();
+         const body = $('div#articlebody').find('p').text().trim();
+
+         return {
+            title: title,
+            published: time,
+            body: body
+         }
+      })
+   })
+   return Promise.all(operations);
+}
+
+module.exports = {
+   scrapeFeedburner,
+   getArticleData
+}
