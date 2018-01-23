@@ -4,13 +4,13 @@ const expect = require('chai').expect;
 
 describe('gatherNewsService.js', function() {
    it('should exist in location', function() {
-      const gatherNewsService = require('../newsGatherService.js');
+      const gatherNewsService = require('../gatherNewsService.js');
       expect(gatherNewsService).to.not.be.undefined;
    })
 });
 
 // import our news service
-const gatherNewsService = require('../newsGatherService.js');
+const gatherNewsService = require('../gatherNewsService.js');
 
 
 describe('scrapeFeedBurner', function() {
